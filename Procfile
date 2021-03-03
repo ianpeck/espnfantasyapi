@@ -1,1 +1,1 @@
-web: gunicorn espn-fantasy-waiverwire-app:main.py
+web: gunicorn main:app
