@@ -1,6 +1,6 @@
 import requests
+import os
 import json
-import config as c
 from datetime import datetime
 from datetime import timedelta
 from decimal import Decimal
@@ -8,13 +8,16 @@ import smtplib
 from email.message import EmailMessage
 import boto3
 
+swid = os.environ.get('swid')
+espn_s2 = os.environ.get('espn')
+
 currentDate = datetime.now() + timedelta(days=-1)
 
 # Grab Latest Scoring Period for usage in filter_key
 
 response = requests.get(
     'https://fantasy.espn.com/apis/v3/games/fba/seasons/2021/segments/0/leagues/140392?view=mLiveScoring',
-    cookies=({'swid': c.swid,
+    cookies=({'swid': swid,
               'espn_s2': c.espn_s2}))
 
 scoringPeriodID = int(response.json()['scoringPeriodId']-1)
