@@ -1,6 +1,6 @@
 import requests
 import json
-import config as c
+import .config
 from datetime import datetime
 from datetime import timedelta
 from decimal import Decimal
