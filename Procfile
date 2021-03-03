@@ -1,0 +1,1 @@
+web: gunicorn dep:espn-fantasy-waiverwire-app
