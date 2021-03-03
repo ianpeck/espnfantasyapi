@@ -18,3 +18,4 @@ six==1.15.0
 soupsieve==2.2
 urllib3==1.26.3
 Werkzeug==1.0.1
+.config.py
