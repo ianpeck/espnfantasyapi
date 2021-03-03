@@ -9,7 +9,11 @@ from email.message import EmailMessage
 import boto3
 
 swid = os.environ.get('swid')
-espn_s2 = os.environ.get('espn')
+espn_s2 = os.environ.get('espn_s2')
+accessKey = os.environ.get('accessKey')
+secretKey = os.environ.get('secretKey')
+emailPassword = os.environ.get('emailPassword')
+
 
 currentDate = datetime.now() + timedelta(days=-1)
 
@@ -18,7 +22,7 @@ currentDate = datetime.now() + timedelta(days=-1)
 response = requests.get(
     'https://fantasy.espn.com/apis/v3/games/fba/seasons/2021/segments/0/leagues/140392?view=mLiveScoring',
     cookies=({'swid': swid,
-              'espn_s2': c.espn_s2}))
+              'espn_s2': espn_s2}))
 
 scoringPeriodID = int(response.json()['scoringPeriodId']-1)
 
@@ -55,7 +59,7 @@ for players in json_stats['players']:
 
 # Insert Into DynamoDB
 
-dynamodb = boto3.resource('dynamodb',aws_access_key_id=c.accessKey, aws_secret_access_key=c.secretKey, region_name='us-east-2')
+dynamodb = boto3.resource('dynamodb',aws_access_key_id=accessKey, aws_secret_access_key=secretKey, region_name='us-east-2')
 
 dytable = dynamodb.Table('WatchListPlayers')
 for dicts in playersList:
@@ -78,7 +82,7 @@ msg['From'] = "snekbot95@gmail.com"
 msg['To'] = "ianpeck22@gmail.com"
 
 server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-server.login("snekbot95@gmail.com", c.emailPassword)
+server.login("snekbot95@gmail.com", emailPassword)
 server.send_message(msg)
 server.quit()
 
