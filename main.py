@@ -8,6 +8,8 @@ import smtplib
 from email.message import EmailMessage
 import boto3
 
+print('App Online')
+
 swid = os.environ.get('swid')
 espn_s2 = os.environ.get('espn_s2')
 accessKey = os.environ.get('accessKey')
@@ -65,6 +67,8 @@ dytable = dynamodb.Table('WatchListPlayers')
 for dicts in playersList:
     dytable.put_item(Item=dicts)
 
+print("Data inserted into DynamoDB")
+
 # Check for Recurring players (Query DynamoDB)
 
 # Send email from dev snake
@@ -85,4 +89,6 @@ server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
 server.login("snekbot95@gmail.com", emailPassword)
 server.send_message(msg)
 server.quit()
+
+print("App Complete!")
 
