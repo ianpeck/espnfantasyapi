@@ -1,1 +1,1 @@
-web: gunicorn app:espn-fantasy-waiverwire-app --preload
+web: gunicorn app:main.py
