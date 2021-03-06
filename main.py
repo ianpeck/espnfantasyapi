@@ -8,7 +8,7 @@ import smtplib
 from email.message import EmailMessage
 import boto3
 
-print('App Online')
+print('App Online!')
 
 swid = os.environ.get('swid')
 espn_s2 = os.environ.get('espn_s2')
@@ -44,51 +44,55 @@ response = requests.get('https://fantasy.espn.com/apis/v3/games/fba/seasons/2021
 
 json_stats = response.json()
 
-
 # Prep Data for insertion into DynamoDB
 
 playersList = []
 
 for players in json_stats['players']:
-    if players['onTeamId'] == 0 and players['player']['stats'][0]['appliedTotal'] > 18:
+    if players['onTeamId'] == 0 and players['player']['stats'][0]['appliedTotal'] > 23:
         playerDict = dict()
         playerDict['Name+Date'] = str(players['player']['fullName']) + ' ' + str(currentDate.strftime('%m/%d/%Y'))
         playerDict['Name'] = players['player']['fullName']
         playerDict['Points'] = Decimal(players['player']['stats'][0]['appliedTotal'])
         playerDict['Date'] = currentDate.strftime('%m/%d/%Y')
+        playerDict['Status'] = players['status']
         playersList.append(playerDict)
 
 
-# Insert Into DynamoDB
+if not playersList:
+    print('No data today!')
+else:
+    # Insert Into DynamoDB
 
-dynamodb = boto3.resource('dynamodb',aws_access_key_id=accessKey, aws_secret_access_key=secretKey, region_name='us-east-2')
+    dynamodb = boto3.resource('dynamodb',aws_access_key_id=accessKey, aws_secret_access_key=secretKey, region_name='us-east-2')
 
-dytable = dynamodb.Table('WatchListPlayers')
-for dicts in playersList:
-    dytable.put_item(Item=dicts)
+    dytable = dynamodb.Table('WatchListPlayers')
+    for dicts in playersList:
+        dytable.put_item(Item=dicts)
 
-print("Data inserted into DynamoDB")
+    print("Data inserted into DynamoDB")
 
-# Check for Recurring players (Query DynamoDB)
+    # Check for Recurring players (Query DynamoDB)
 
-# Send email from dev snake
+    # Send email from dev snake
 
-emailData = 'These are the top unrostered scorers for yesterday, ' + currentDate.strftime('%m/%d/%Y') + ':\n' + '\n'
+    emailData = 'These are the top unrostered scorers for yesterday, ' + currentDate.strftime('%m/%d/%Y') + ':\n' + '\n'
 
-for dicts in playersList:
-    emailData += (dicts['Name'] + ' - ' + str(dicts['Points']) + '\n')
+    for dicts in playersList:
+        emailData += (dicts['Name'] + ' - ' + str(dicts['Points']) + ' (' + str(dicts['Status']) + ')' + '\n')
 
-msg = EmailMessage()
-msg.set_content(emailData)
+    msg = EmailMessage()
+    msg.set_content(emailData)
 
-msg['Subject'] = 'Free Agent Finds'
-msg['From'] = "snekbot95@gmail.com"
-msg['To'] = "ianpeck22@gmail.com"
+    msg['Subject'] = 'Free Agent Finds'
+    msg['From'] = "snekbot95@gmail.com"
+    msg['To'] = "ianpeck22@gmail.com"
 
-server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-server.login("snekbot95@gmail.com", emailPassword)
-server.send_message(msg)
-server.quit()
+    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    server.login("snekbot95@gmail.com", emailPassword)
+    server.send_message(msg)
+    server.quit()
 
-print("App Complete!")
+    print("Email Sent!")
 
+print('App Complete!')
