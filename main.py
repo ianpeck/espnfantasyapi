@@ -19,6 +19,7 @@ emailPassword = os.environ.get('emailPassword')
 
 
 currentDate = datetime.now() + timedelta(days=-1)
+twoWeeksAgo = (datetime.now() + timedelta(days=-14)).strftime('%m/%d/%Y')
 
 # Grab Latest Scoring Period for usage in filter_key
 
