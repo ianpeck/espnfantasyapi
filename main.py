@@ -7,6 +7,7 @@ from decimal import Decimal
 import smtplib
 from email.message import EmailMessage
 import boto3
+from boto3.dynamodb.conditions import Key, Attr
 
 print('App Online!')
 
@@ -29,7 +30,7 @@ response = requests.get(
 scoringPeriodID = int(response.json()['scoringPeriodId']-1)
 
 
-# Set Up Data Pull
+# Set Up ESPN Data Pull
 
 my_referer = 'https://fantasy.espn.com/basketball/leaders?leagueId=140392'
 
@@ -58,28 +59,52 @@ for players in json_stats['players']:
         playerDict['Status'] = players['status']
         playersList.append(playerDict)
 
-
 if not playersList:
     print('No data today!')
+
 else:
-    # Insert Into DynamoDB
+
+# Grab Past Two Week Info
 
     dynamodb = boto3.resource('dynamodb',aws_access_key_id=accessKey, aws_secret_access_key=secretKey, region_name='us-east-2')
 
     dytable = dynamodb.Table('WatchListPlayers')
+
+    response = dytable.scan(FilterExpression=Attr("Date").gt(twoWeeksAgo))
+
+    items = response['Items']
+    last_2_weeks_players = [x['Name'] for x in items]
+    count_two_wk_players = []
+    for x in set(last_2_weeks_players):
+        two_wk_dict = dict()
+        two_wk_dict['Player'] = x
+        two_wk_dict['Count'] = last_2_weeks_players.count(x)
+        count_two_wk_players.append(two_wk_dict)
+
+# Combine dictionaries
+
+    index_by_player = {d['Player']: d['Count'] for d in count_two_wk_players}
+
+    for d in playersList:
+        if d['Name'] in index_by_player:
+            d['Count'] = index_by_player[d['Name']]
+
+# Insert Into DynamoDB
+
     for dicts in playersList:
         dytable.put_item(Item=dicts)
 
     print("Data inserted into DynamoDB")
 
-    # Check for Recurring players (Query DynamoDB)
 
     # Send email from dev snake
 
     emailData = 'These are the top unrostered scorers for yesterday, ' + currentDate.strftime('%m/%d/%Y') + ':\n' + '\n'
 
     for dicts in playersList:
-        emailData += (dicts['Name'] + ' - ' + str(dicts['Points']) + ' (' + str(dicts['Status']) + ')' + '\n')
+        emailData += (dicts['Name'] + ' - ' + str(dicts['Points']) + ' (' + str(dicts['Status']) + ', '
+                      + str(dicts['Count']) + ')' '\n')
+
 
     msg = EmailMessage()
     msg.set_content(emailData)
