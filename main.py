@@ -19,7 +19,7 @@ emailPassword = os.environ.get('emailPassword')
 
 
 currentDate = datetime.now() + timedelta(days=-1)
-twoWeeksAgo = (datetime.now() + timedelta(days=-14)).strftime('%m/%d/%Y')
+oneWeekAgo = (datetime.now() + timedelta(days=-10)).strftime('%m/%d/%Y')
 
 # Grab Latest Scoring Period for usage in filter_key
 
@@ -65,32 +65,34 @@ if not playersList:
 
 else:
 
-# Grab Past Two Week Info
+# Grab Past Week Info
 
     dynamodb = boto3.resource('dynamodb',aws_access_key_id=accessKey, aws_secret_access_key=secretKey, region_name='us-east-2')
 
     dytable = dynamodb.Table('WatchListPlayers')
 
-    response = dytable.scan(FilterExpression=Attr("Date").gt(twoWeeksAgo))
+    response = dytable.scan(FilterExpression=Attr("Date").gt(oneWeekAgo))
 
     items = response['Items']
-    last_2_weeks_players = [x['Name'] for x in items]
-    count_two_wk_players = []
-    for x in set(last_2_weeks_players):
-        two_wk_dict = dict()
-        two_wk_dict['Player'] = x
-        two_wk_dict['Count'] = last_2_weeks_players.count(x)
-        count_two_wk_players.append(two_wk_dict)
+    last_weeks_players = [x['Name'] for x in items]
+    count_wk_players = []
+    for x in set(last_weeks_players):
+        wk_dict = dict()
+        wk_dict['Player'] = x
+        wk_dict['Count'] = last_weeks_players.count(x)
+        count_wk_players.append(wk_dict)
 
 # Combine dictionaries
 
-    index_by_player = {d['Player']: d['Count'] for d in count_two_wk_players}
+    index_by_player = {d['Player']: d['Count'] for d in count_wk_players}
 
     for d in playersList:
         if d['Name'] in index_by_player:
             d['Count'] = index_by_player[d['Name']]
+        else:
+            d['Count'] = 0
 
-# Insert Into DynamoDB
+# # Insert Into DynamoDB
 
     for dicts in playersList:
         dytable.put_item(Item=dicts)
