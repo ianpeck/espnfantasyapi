@@ -20,11 +20,12 @@ emailPassword = os.environ.get('emailPassword')
 
 currentDate = datetime.now() + timedelta(days=-1)
 oneWeekAgo = (datetime.now() + timedelta(days=-10)).strftime('%m/%d/%Y')
+year = 2022
 
 # Grab Latest Scoring Period for usage in filter_key
 
 response = requests.get(
-    'https://fantasy.espn.com/apis/v3/games/fba/seasons/2021/segments/0/leagues/140392?view=mLiveScoring',
+    'https://fantasy.espn.com/apis/v3/games/fba/seasons/{}/segments/0/leagues/140392?view=mLiveScoring'.format(year),
     cookies=({'swid': swid,
               'espn_s2': espn_s2}))
 
@@ -37,7 +38,7 @@ my_referer = 'https://fantasy.espn.com/basketball/leaders?leagueId=140392'
 
 filter_key = {"players":{"filterSlotIds":{"value":[0,1,2,3,4,5,6,7,8,9,10,11]},"filterStatsForCurrentSeasonScoringPeriodId":{"value":[scoringPeriodID]},"sortAppliedStatTotal":None,"sortAppliedStatTotalForScoringPeriodId":{"sortAsc":False,"sortPriority":1,"value":scoringPeriodID},"sortStatId":None,"sortStatIdForScoringPeriodId":None,"sortPercOwned":{"sortPriority":3,"sortAsc":False},"limit":100,"offset":0,"filterRanksForScoringPeriodIds":{"value":[scoringPeriodID]},"filterRanksForRankTypes":{"value":["STANDARD"]}}}
 
-response = requests.get('https://fantasy.espn.com/apis/v3/games/fba/seasons/2021/segments/0/leagues/140392?view=kona_player_info',
+response = requests.get('https://fantasy.espn.com/apis/v3/games/fba/seasons/{}/segments/0/leagues/140392?view=kona_player_info'.format(year),
                       headers={'referer': my_referer,
                                'x-fantasy-filter': json.dumps(filter_key)},
                       params=({"players": {"limit": 1500,"sortDraftRanks": {"sortPriority": 100,"sortAsc": True,"value": "STANDARD"}}}),
@@ -92,7 +93,7 @@ else:
         else:
             d['Count'] = 0
 
-# # Insert Into DynamoDB
+# Insert Into DynamoDB
 
     for dicts in playersList:
         dytable.put_item(Item=dicts)
