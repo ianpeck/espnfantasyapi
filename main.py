@@ -21,6 +21,7 @@ emailPassword = os.environ.get('emailPassword')
 currentDate = datetime.now() + timedelta(days=-1)
 oneWeekAgo = (datetime.now() + timedelta(days=-10)).strftime('%m/%d/%Y')
 year = 2023
+# Variable to insert or not (testing purposes)
 insert_into_aws = False
 
 # Grab Latest Scoring Period for usage in filter_key
