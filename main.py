@@ -20,7 +20,8 @@ emailPassword = os.environ.get('emailPassword')
 
 currentDate = datetime.now() + timedelta(days=-1)
 oneWeekAgo = (datetime.now() + timedelta(days=-10)).strftime('%m/%d/%Y')
-year = 2022
+year = 2023
+insert_into_aws = False
 
 # Grab Latest Scoring Period for usage in filter_key
 
@@ -94,14 +95,13 @@ else:
             d['Count'] = 0
 
 # Insert Into DynamoDB
+    if insert_into_aws is True:
+        for dicts in playersList:
+            dytable.put_item(Item=dicts)
+        print("Data inserted into DynamoDB")
 
-    for dicts in playersList:
-        dytable.put_item(Item=dicts)
-
-    print("Data inserted into DynamoDB")
-
-
-    # Send email from dev snake
+    
+# Send email from dev snake
 
     emailData = 'These are the top unrostered scorers for yesterday, ' + currentDate.strftime('%m/%d/%Y') + ':\n' + '\n'
 
